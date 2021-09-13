@@ -18,5 +18,5 @@ endif()
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()
 
-add_executable(main main.cc server.cc)
+add_executable(main main.cc server.cc logger.cc)
 target_link_libraries(main ${CONAN_LIBS})

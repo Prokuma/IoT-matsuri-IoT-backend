@@ -4,6 +4,7 @@
 #include <boost/asio/io_service.hpp>
 #include <boost/optional.hpp>
 #include <memory>
+#include "logger.hh"
 
 namespace asio = boost::asio;
 using asio::ip::tcp;
@@ -12,6 +13,7 @@ class device_session: public std::enable_shared_from_this<device_session> {
     private:
     tcp::socket socket_;
     asio::streambuf receive_buff_;
+    logger logger_;
     void read();
     void write(std::string message);
 

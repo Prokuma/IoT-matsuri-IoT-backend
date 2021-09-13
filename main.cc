@@ -5,8 +5,7 @@
 
 namespace asio = boost::asio;
 
-int main()
-{
+int main() {
     asio::io_service io_service;
     server server(io_service, 31400);
 

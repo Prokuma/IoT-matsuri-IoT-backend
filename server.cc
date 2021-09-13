@@ -13,6 +13,7 @@
 #include <string>
 
 void device_session::start() {
+    write("AQE");
     read();
 }
 
@@ -24,13 +25,22 @@ void device_session::read() {
     auto self(shared_from_this());
     asio::async_read(socket_, receive_buff_, asio::transfer_at_least(1),
     [this, self](boost::system::error_code error, std::size_t length){
+        std::string ip_address = socket_.remote_endpoint().address().to_string();
         if (!error) {
             const char* data = asio::buffer_cast<const char*>(receive_buff_.data());
-            std::cout << data << std::endl;
+            logger_.log_info(ip_address, "Data Received: " + std::string(data));
+            
+            //Fake Implementations
+            //Please implement protocol of IoT Matsuri
+            if (std::string(data).substr(0,3) == "REQ") {
+                write("RESPONSE\n");
+            }
             receive_buff_.consume(length);
             read();
+        } else if (error == asio::error::eof) {
+            logger_.log_info(ip_address, "EOF received.");
         } else {
-            std::cout << "Error Message: " << error.message() << std::endl;
+            logger_.log_error(ip_address, error.message());
         }
     });
 }
@@ -39,10 +49,11 @@ void device_session::write(std::string message) {
     auto self(shared_from_this());
     asio::async_write(socket_, asio::buffer(message),
     [this, self](boost::system::error_code error, std::size_t length){
+        std::string ip_address = socket_.remote_endpoint().address().to_string();
         if (!error) {
-            std::cout << "Write Successfully!" << std::endl;
+            logger_.log_info(ip_address, "Write Successfully!");
         } else {
-            std::cout << error.message() << std::endl;
+            logger_.log_error(ip_address, error.message());
         }
     });
 }
