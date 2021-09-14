@@ -7,6 +7,10 @@
 #include <boost/asio/write.hpp>
 #include <boost/bind.hpp>
 #include <boost/optional/optional.hpp>
+#include <boost/uuid/random_generator.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <cstddef>
 #include <cstdlib>
 #include <iostream>
 #include <memory>
@@ -21,6 +25,10 @@ void device_session::deliver(std::string message) {
     write(message);
 }
 
+boost::optional<std::string> device_session::get_token() {
+    return token_;
+}
+
 void device_session::read() {
     auto self(shared_from_this());
     asio::async_read(socket_, receive_buff_, asio::transfer_at_least(1),
@@ -30,11 +38,25 @@ void device_session::read() {
             const char* data = asio::buffer_cast<const char*>(receive_buff_.data());
             logger_.log_info(ip_address, "Data Received: " + std::string(data));
             
-            //Fake Implementations
-            //Please implement protocol of IoT Matsuri
-            if (std::string(data).substr(0,3) == "REQ") {
-                write("RESPONSE\n");
+            if (std::string(data).substr(0,2) == "AS") {
+                //Authentication Response
+                int token_length = 0;
+                token_length |= data[2] << 8;
+                token_length |= data[3];
+                if (token_length > length) {
+                    logger_.log_error(ip_address, "Invalid token length.");
+                    read();
+                    return;
+                }
+                std::string token = std::string(data).substr(4, token_length);
+                token_map_[token] = session_id_;
+                token_ = token;
+            } else if (std::string(data).substr(0,2) == "NS") {
+                //Monitoring Response
+            } else if (std::string(data).substr(0,2) == "MS") {
+                //Message Response
             }
+
             receive_buff_.consume(length);
             read();
         } else if (error == asio::error::eof) {
@@ -66,7 +88,9 @@ void server::start_accept() {
     acceptor_.async_accept(
         [this](const boost::system::error_code& error, tcp::socket socket) {
             if(!error) {
-                std::make_shared<device_session>(std::move(socket))->start();
+                boost::uuids::uuid session_id = boost::uuids::random_generator{}();
+                session_map[session_id] = std::make_shared<device_session>(std::move(socket), token_map, session_id);
+                session_map[session_id]->start();
             }
             start_accept();
         }

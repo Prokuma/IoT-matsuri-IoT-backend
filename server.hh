@@ -3,7 +3,9 @@
 #include <boost/asio.hpp>
 #include <boost/asio/io_service.hpp>
 #include <boost/optional.hpp>
+#include <boost/uuid/uuid.hpp>
 #include <memory>
+#include <map>
 #include "logger.hh"
 
 namespace asio = boost::asio;
@@ -14,14 +16,22 @@ class device_session: public std::enable_shared_from_this<device_session> {
     tcp::socket socket_;
     asio::streambuf receive_buff_;
     logger logger_;
+    std::map<std::string, boost::uuids::uuid>& token_map_;
+    boost::uuids::uuid session_id_;
+    boost::optional<std::string> token_ = boost::none;
+
     void read();
     void write(std::string message);
 
     public:
-    device_session(tcp::socket socket) 
-        :socket_(std::move(socket)) {}
+    device_session(tcp::socket socket, 
+    std::map<std::string, boost::uuids::uuid>& token_map,
+    boost::uuids::uuid session_id) 
+        :socket_(std::move(socket)), token_map_(token_map), 
+        session_id_(session_id) {}
     void start();
     void deliver(std::string message);
+    boost::optional<std::string> get_token();
 };
 
 class server {
@@ -30,6 +40,10 @@ class server {
     tcp::acceptor acceptor_;
     tcp::socket socket_;
     asio::streambuf receive_buff_;
+    std::map<boost::uuids::uuid, std::shared_ptr<device_session>> session_map;
+    std::map<std::string, boost::uuids::uuid> token_map;
+
+    boost::optional<int> find_session(std::string token);
     void start_accept();
     void on_accept(const boost::system::error_code& error, tcp::socket socket);
     void start_receive();
