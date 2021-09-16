@@ -17,7 +17,7 @@
 #include <string>
 
 void device_session::start() {
-    write("AQE");
+    write("AQE"); //Send Authentication Request
     read();
 }
 
@@ -40,21 +40,13 @@ void device_session::read() {
             
             if (std::string(data).substr(0,2) == "AS") {
                 //Authentication Response
-                int token_length = 0;
-                token_length |= data[2] << 8;
-                token_length |= data[3];
-                if (token_length > length) {
-                    logger_.log_error(ip_address, "Invalid token length.");
-                    read();
-                    return;
-                }
-                std::string token = std::string(data).substr(4, token_length);
-                token_map_[token] = session_id_;
-                token_ = token;
+                handler_AS(data, ip_address);
             } else if (std::string(data).substr(0,2) == "NS") {
                 //Monitoring Response
+                handler_NS(data, ip_address);
             } else if (std::string(data).substr(0,2) == "MS") {
                 //Message Response
+                handler_MS(data, ip_address);
             }
 
             receive_buff_.consume(length);

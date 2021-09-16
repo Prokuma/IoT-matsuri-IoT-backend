@@ -22,6 +22,9 @@ class device_session: public std::enable_shared_from_this<device_session> {
 
     void read();
     void write(std::string message);
+    void handler_AS(const char* data, std::string ip_address);
+    void handler_NS(const char* data, std::string ip_address);
+    void handler_MS(const char* data, std::string ip_address);
 
     public:
     device_session(tcp::socket socket, 
