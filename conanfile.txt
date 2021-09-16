@@ -2,6 +2,7 @@
 boost/1.77.0
 redis-plus-plus/1.2.3
 libpqxx/7.6.0
+cryptopp/8.5.0
 
 [generators]
 cmake
