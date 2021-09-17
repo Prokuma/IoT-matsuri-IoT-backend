@@ -6,7 +6,7 @@
 
 int main() {
     std::string conn_info = (
-        boost::format("host=%1% port=%2% dbname=%3% user=%4%") %
+        boost::format("user=%1% password=%2% host=%3% dbname=%4%") %
         std::getenv("POSTGRES_USER") %
         std::getenv("POSTGRES_PASSWORD") %
         std::getenv("POSTGRES_HOST") %
