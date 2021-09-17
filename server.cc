@@ -81,7 +81,11 @@ void server::start_accept() {
         [this](const boost::system::error_code& error, tcp::socket socket) {
             if(!error) {
                 boost::uuids::uuid session_id = boost::uuids::random_generator{}();
-                session_map[session_id] = std::make_shared<device_session>(std::move(socket), token_map, session_id);
+                session_map[session_id] = std::make_shared<device_session>(
+                    std::move(socket),
+                    token_map,
+                    session_id
+                );
                 session_map[session_id]->start();
             }
             start_accept();

@@ -5,9 +5,8 @@ void device_session::handler_AS(const char *data, std::string ip_address) {
     token_length |= data[2] << 8;
     token_length |= data[3];
     if (token_length > strlen(data)) {
-    logger_.log_error(ip_address, "Invalid token length.");
-    read();
-    return;
+        logger_.log_error(ip_address, "Invalid token length.");
+        return;
     }
     std::string token = std::string(data).substr(4, token_length);
     token_map_[token] = session_id_;

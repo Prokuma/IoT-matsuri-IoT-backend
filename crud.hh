@@ -1,7 +1,9 @@
 #ifndef CRUD_HH
 #define CRUD_HH
 #include <map>
+#include <iostream>
 #include <string>
+#include <pqxx/pqxx>
 
 #define BUFSIZE 1024
 
@@ -22,13 +24,20 @@ namespace models {
 
 
 class crud {
+    private:
+    pqxx::connection conn;
+    
     public:
-    models::device get_device(std::string device_id);
-    models::message get_message(std::string message_id);
-    std::map<std::string, std::string> get_messages_from_device_id(std::string device_id);
-    bool create_message(std::string device_id, std::string message);
+    crud(std::string conn_info) : conn(conn_info){}
     std::string encrypt_message(std::string plain, std::string key);
     std::string decrypt_message(std::string crypted, std::string key);
+    models::device get_device(std::string device_id);
+    models::message get_message(std::string message_id);
+    void get_messages_from_device_id(
+        std::map<std::string, std::string>& map,
+        std::string device_id
+    );
+    bool create_message(std::string device_id, std::string message);
 };
 
 

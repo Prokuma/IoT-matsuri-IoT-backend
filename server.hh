@@ -48,9 +48,15 @@ class server {
 
     boost::optional<int> find_session(std::string token);
     void start_accept();
-    void on_accept(const boost::system::error_code& error, tcp::socket socket);
+    void on_accept(
+        const boost::system::error_code& error,
+        tcp::socket socket
+    );
     void start_receive();
-    void on_receive(const boost::system::error_code& error, size_t bytes_transferred);
+    void on_receive(
+        const boost::system::error_code& error,
+        size_t bytes_transferred
+    );
 
     public:
     server(asio::io_service& io_service, int port)

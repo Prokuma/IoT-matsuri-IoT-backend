@@ -1,6 +1,5 @@
 #include "crud.hh"
 #include <cryptopp/filters.h>
-#include <string.h>
 #include <cryptopp/aes.h>
 #include <cryptopp/modes.h>
 #include <cryptopp/base64.h>
@@ -34,4 +33,22 @@ std::string crud::decrypt_message(std::string crypted, std::string key) {
     CryptoPP::StringSource s(crypted, true, decryptor);
 
     return result;
+}
+
+models::device crud::get_device(std::string device_id) {
+    return models::device();
+}
+
+models::message crud::get_message(std::string message_id) {
+    return models::message();
+}
+
+void crud::get_messages_from_device_id(
+            std::map<std::string, std::string> &map,
+            std::string device_id) {
+
+}
+
+bool crud::create_message(std::string device_id, std::string message) {
+    return false;
 }
