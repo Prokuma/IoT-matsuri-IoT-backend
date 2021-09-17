@@ -19,4 +19,6 @@ include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()
 
 add_executable(main main.cc server.cc logger.cc session_handler.cc crud.cc)
+add_executable(test_crud tests/test_crud.cc crud.cc)
 target_link_libraries(main ${CONAN_LIBS})
+target_link_libraries(test_crud ${CONAN_LIBS})

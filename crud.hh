@@ -2,8 +2,9 @@
 #define CRUD_HH
 #include <map>
 #include <iostream>
-#include <string>
+#include <vector>
 #include <pqxx/pqxx>
+#include <boost/optional.hpp>
 
 #define BUFSIZE 1024
 
@@ -31,13 +32,13 @@ class crud {
     crud(std::string conn_info) : conn(conn_info){}
     std::string encrypt_message(std::string plain, std::string key);
     std::string decrypt_message(std::string crypted, std::string key);
-    models::device get_device(std::string device_id);
-    models::message get_message(std::string message_id);
+    boost::optional<models::device> get_device(std::string device_id);
+    boost::optional<models::message> get_message(std::string message_id);
     void get_messages_from_device_id(
-        std::map<std::string, std::string>& map,
+        std::vector<models::message>& vec,
         std::string device_id
     );
-    bool create_message(std::string device_id, std::string message);
+    boost::optional<models::message> create_message(std::string device_id, std::string message);
 };
 
 

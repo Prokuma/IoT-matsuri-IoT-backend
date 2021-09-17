@@ -35,20 +35,20 @@ std::string crud::decrypt_message(std::string crypted, std::string key) {
     return result;
 }
 
-models::device crud::get_device(std::string device_id) {
-    return models::device();
+boost::optional<models::device> crud::get_device(std::string device_id) {
+    return boost::none;
 }
 
-models::message crud::get_message(std::string message_id) {
-    return models::message();
+boost::optional<models::message> crud::get_message(std::string message_id) {
+    return boost::none;
 }
 
 void crud::get_messages_from_device_id(
-            std::map<std::string, std::string> &map,
+            std::vector<models::message> &vec,
             std::string device_id) {
 
 }
 
-bool crud::create_message(std::string device_id, std::string message) {
-    return false;
+boost::optional<models::message> crud::create_message(std::string device_id, std::string message) {
+    return boost::none;
 }
