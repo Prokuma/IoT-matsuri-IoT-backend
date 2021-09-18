@@ -18,6 +18,7 @@ namespace models {
 
     struct message {
         std::string id;
+        bool is_to_device;
         std::string device_id;
         std::string message;
     };
