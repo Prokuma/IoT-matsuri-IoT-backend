@@ -60,7 +60,7 @@ boost::optional<models::device> crud::get_device(std::string device_id) {
 boost::optional<models::message> crud::get_message(std::string message_id) {
     pqxx::work txn{ this->conn };
     models::message tmp_message;
-    pqxx::result r(txn.exec("SELECT device_id, message FROM Message WHERE id = \'" + message_id + "\'"));
+    pqxx::result r(txn.exec("SELECT device_id, is_to_device, message FROM Message WHERE id = \'" + message_id + "\'"));
 
     if (!r.size() || r[0].size() < 2) {
         return boost::none;
@@ -68,7 +68,8 @@ boost::optional<models::message> crud::get_message(std::string message_id) {
 
     tmp_message.id = message_id;
     tmp_message.device_id = r[0][0].c_str();
-    tmp_message.message_string = r[0][1].c_str();
+    tmp_message.is_to_device = *r[0][1].get<bool>();
+    tmp_message.message_string = r[0][2].c_str();
 
     txn.commit();
     return tmp_message;
@@ -78,15 +79,16 @@ void crud::get_messages_from_device_id(
             std::vector<models::message> &vec,
             std::string device_id) {
     pqxx::work txn{ this->conn };
-    pqxx::result r(txn.exec("SELECT id, message FROM Message WHERE device_id = \'" + device_id + "\'"));
+    pqxx::result r(txn.exec("SELECT id, is_to_device, message FROM Message WHERE device_id = \'" + device_id + "\'"));
 
     for (auto const& row : r) {
-        if (row.size() < 2) {
+        if (row.size() < 3) {
             continue;
         }
         models::message tmp_message;
         tmp_message.id = row[0].c_str();
-        tmp_message.message_string = row[1].c_str();
+        tmp_message.is_to_device = *row[1].get<bool>();
+        tmp_message.message_string = row[2].c_str();
         tmp_message.device_id = device_id;
         vec.emplace_back(tmp_message);
     }
@@ -100,8 +102,8 @@ boost::optional<models::message> crud::create_message(std::string device_id, std
 
     std::string message_uuid = boost::lexical_cast<std::string>(boost::uuids::random_generator()());
     txn.exec0(
-        "INSERT INTO Message (id, device_id, message) "
-        "VALUES (\'" + message_uuid + "\',\'" + pqxx::to_string(device_id) + "\',\'" + message + "\')"
+        "INSERT INTO Message (id, is_to_device, device_id, message) "
+        "VALUES (\'" + message_uuid + "\', FALSE, \'" + pqxx::to_string(device_id) + "\',\'" + message + "\')"
     );
 
     txn.commit();
