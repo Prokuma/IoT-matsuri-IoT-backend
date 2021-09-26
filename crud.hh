@@ -19,7 +19,7 @@ namespace models {
     struct message {
         std::string id;
         std::string device_id;
-        std::string message;
+        std::string message_string;
     };
 }
 
