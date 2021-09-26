@@ -3,6 +3,10 @@
 #include <cryptopp/aes.h>
 #include <cryptopp/modes.h>
 #include <cryptopp/base64.h>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/lexical_cast.hpp>
 
 std::string crud::encrypt_message(std::string plain, std::string key) {
     std::string result;
@@ -36,19 +40,75 @@ std::string crud::decrypt_message(std::string crypted, std::string key) {
 }
 
 boost::optional<models::device> crud::get_device(std::string device_id) {
-    return boost::none;
+    models::device tmp_device;
+    pqxx::work txn{ this->conn };
+    pqxx::result r(txn.exec("SELECT secret, connection, user_id FROM Device WHERE id = " + device_id));
+    
+    if (!r.size() || r[0].size() < 3) {
+        return boost::none;
+    }
+   
+    tmp_device.id = device_id;
+    tmp_device.secret = r[0][0].c_str();
+    tmp_device.connection = r[0][1].c_str();
+    tmp_device.user_id = *r[0][2].get<int>();
+    
+    txn.commit();
+    return tmp_device;
 }
 
 boost::optional<models::message> crud::get_message(std::string message_id) {
-    return boost::none;
+    pqxx::work txn{ this->conn };
+    models::message tmp_message;
+    pqxx::result r(txn.exec("SELECT device_id, message FROM Message WHERE id = \'" + message_id + "\'"));
+
+    if (!r.size() || r[0].size() < 2) {
+        return boost::none;
+    }
+
+    tmp_message.id = message_id;
+    tmp_message.device_id = r[0][0].c_str();
+    tmp_message.message_string = r[0][1].c_str();
+
+    txn.commit();
+    return tmp_message;
 }
 
 void crud::get_messages_from_device_id(
             std::vector<models::message> &vec,
             std::string device_id) {
+    pqxx::work txn{ this->conn };
+    pqxx::result r(txn.exec("SELECT id, message FROM Message WHERE device_id = \'" + device_id + "\'"));
 
+    for (auto const& row : r) {
+        if (row.size() < 2) {
+            continue;
+        }
+        models::message tmp_message;
+        tmp_message.id = row[0].c_str();
+        tmp_message.message_string = row[1].c_str();
+        tmp_message.device_id = device_id;
+        vec.emplace_back(tmp_message);
+    }
+    txn.commit();
+    return;
 }
 
 boost::optional<models::message> crud::create_message(std::string device_id, std::string message) {
-    return boost::none;
+    models::message tmp_message;
+    pqxx::work txn{ this->conn };
+
+    std::string message_uuid = boost::lexical_cast<std::string>(boost::uuids::random_generator()());
+    txn.exec0(
+        "INSERT INTO Message (id, device_id, message) "
+        "VALUES (\'" + message_uuid + "\',\'" + pqxx::to_string(device_id) + "\',\'" + message + "\')"
+    );
+
+    txn.commit();
+
+    tmp_message.message_string = message;
+    tmp_message.device_id = device_id;
+    tmp_message.id = message_uuid;
+
+    return tmp_message;
 }
