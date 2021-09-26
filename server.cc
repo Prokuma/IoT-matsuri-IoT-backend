@@ -53,8 +53,20 @@ void device_session::read() {
             read();
         } else if (error == asio::error::eof) {
             logger_.log_info(ip_address, "EOF received.");
+            if (token_) {
+                auto find = token_map_.find(*token_);
+                if (find != token_map_.end()) {
+                    token_map_.erase(find);
+                }
+            }
         } else {
             logger_.log_error(ip_address, error.message());
+            if (token_) {
+                auto find = token_map_.find(*token_);
+                if (find != token_map_.end()) {
+                    token_map_.erase(find);
+                }
+            }
         }
     });
 }
@@ -84,7 +96,8 @@ void server::start_accept() {
                 session_map[session_id] = std::make_shared<device_session>(
                     std::move(socket),
                     token_map,
-                    session_id
+                    session_id,
+                    crud_
                 );
                 session_map[session_id]->start();
             }

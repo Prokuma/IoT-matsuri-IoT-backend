@@ -7,6 +7,7 @@
 #include <memory>
 #include <map>
 #include "logger.hh"
+#include "crud.hh"
 
 namespace asio = boost::asio;
 using asio::ip::tcp;
@@ -19,6 +20,7 @@ class device_session: public std::enable_shared_from_this<device_session> {
     std::map<std::string, boost::uuids::uuid>& token_map_;
     boost::uuids::uuid session_id_;
     boost::optional<std::string> token_ = boost::none;
+    crud& crud_;
 
     void read();
     void write(std::string message);
@@ -29,9 +31,10 @@ class device_session: public std::enable_shared_from_this<device_session> {
     public:
     device_session(tcp::socket socket, 
     std::map<std::string, boost::uuids::uuid>& token_map,
-    boost::uuids::uuid session_id) 
+    boost::uuids::uuid session_id,
+    crud& crud) 
         :socket_(std::move(socket)), token_map_(token_map), 
-        session_id_(session_id) {}
+        session_id_(session_id), crud_(crud) {}
     void start();
     void deliver(std::string message);
     boost::optional<std::string> get_token();
@@ -40,6 +43,7 @@ class device_session: public std::enable_shared_from_this<device_session> {
 class server {
     private:
     asio::io_service& io_service_;
+    crud& crud_;
     tcp::acceptor acceptor_;
     tcp::socket socket_;
     asio::streambuf receive_buff_;
@@ -59,10 +63,10 @@ class server {
     );
 
     public:
-    server(asio::io_service& io_service, int port)
+    server(asio::io_service& io_service, crud& crud, int port)
         :io_service_(io_service),
         acceptor_(io_service, tcp::endpoint(tcp::v4(), port)),
-        socket_(io_service) {}
+        socket_(io_service) , crud_(crud){}
     void start();
 
 };
