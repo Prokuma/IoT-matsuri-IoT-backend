@@ -20,7 +20,7 @@ namespace models {
         std::string id;
         bool is_to_device;
         std::string device_id;
-        std::string message;
+        std::string message_string;
     };
 }
 
