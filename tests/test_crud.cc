@@ -50,6 +50,23 @@ int main() {
         std::cerr << "Get messages from device id is failed" << std::endl;
         return 1;
     }
+    
+    //crud::update_device_connection() test start
+
+    crud.update_device_connection("12345", true);
+    if (crud.get_device("12345")->connection != true) {
+        std::cerr << "Updating device connection failed" << std::endl;
+        return 1;
+    }
+    crud.update_device_connection("12345", false);
+    if (crud.get_device("12345")->connection != false) {
+        std::cerr << "Updating device connection failed" << std::endl;
+        return 1;
+    }
+    
+    std::cout << "Updating device connection succeeded" << std::endl;
+
+    //crud::update_device_connection() test end
 
     return 0;
 }
