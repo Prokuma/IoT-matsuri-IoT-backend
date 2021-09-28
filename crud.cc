@@ -42,7 +42,6 @@ std::string crud::decrypt_message(std::string crypted, std::string key) {
 boost::optional<models::device> crud::get_device(std::string device_id) {
     models::device tmp_device;
     pqxx::work txn{ this->conn };
-    //pqxx::result r(txn.exec("SELECT secret, connection, user_id FROM Device WHERE id = " + device_id ));
     pqxx::result r(txn.exec("SELECT secret, connection, user_id FROM Device WHERE id = \'" + device_id + "\'"));
     
     if (!r.size() || r[0].size() < 3) {
@@ -51,7 +50,6 @@ boost::optional<models::device> crud::get_device(std::string device_id) {
    
     tmp_device.id = device_id;
     tmp_device.secret = r[0][0].c_str();
-    //tmp_device.connection = r[0][1].c_str();
     tmp_device.connection = *r[0][1].get<bool>();
     tmp_device.user_id = *r[0][2].get<int>();
     
@@ -118,10 +116,7 @@ boost::optional<models::message> crud::create_message(std::string device_id, std
 }
 
 void crud::update_device_connection(std::string device_id, bool connection) {
-
     pqxx::work txn{ this->conn };
-
-    pqxx::result r(txn.exec("SELECT * FROM Device"));
 
     txn.exec0(
         "UPDATE Device SET connection = " + pqxx::to_string(connection) 
