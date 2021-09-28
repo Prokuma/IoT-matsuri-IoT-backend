@@ -115,12 +115,13 @@ boost::optional<models::message> crud::create_message(std::string device_id, std
     return tmp_message;
 }
 
-void crud::update_device_connection(std::string device_id, bool connection) {
+boost::optional<models::device> crud::update_device_connection(std::string device_id, bool connection) {
     pqxx::work txn{ this->conn };
 
     txn.exec0(
-        "UPDATE Device SET connection = " + pqxx::to_string(connection) + "WHERE id = \'" + device_id + "\'"
+        "UPDATE Device SET connection = " + pqxx::to_string(connection) + " WHERE id = \'" + device_id + "\'"
     );
+
     txn.commit();
-    return;
+    return this->get_device(device_id);
 }
