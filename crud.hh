@@ -40,6 +40,8 @@ class crud {
         std::string device_id
     );
     boost::optional<models::message> create_message(std::string device_id, std::string message);
+    void update_device_connection(std::string device_id, bool connection);
+    
 };
 
 
