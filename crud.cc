@@ -119,7 +119,7 @@ void crud::update_device_connection(std::string device_id, bool connection) {
     pqxx::work txn{ this->conn };
 
     txn.exec0(
-        "UPDATE Device SET connection = " + pqxx::to_string(connection) 
+        "UPDATE Device SET connection = " + pqxx::to_string(connection) + "WHERE id = \'" + device_id + "\'"
     );
     txn.commit();
     return;
